@@ -88,6 +88,36 @@
 			- [Structure](#structure)
 			- [Consequences](#consequences)
 			- [Implementation](#implementation)
+		- [Memento Pattern](#memento-pattern)
+			- [Applicability](#applicability)
+			- [Structure](#structure)
+			- [Consequences](#consequences)
+			- [Implementation](#implementation)
+		- [Observer Pattern](#observer-pattern)
+			- [Applicability](#applicability)
+			- [Structure](#structure)
+			- [Consequences](#consequences)
+			- [Implementation](#implementation)
+		- [State Pattern](#state-pattern)
+			- [Applicability](#applicability)
+			- [Structure](#structure)
+			- [Consequences](#consequences)
+			- [Implementation](#implementation)
+		- [Strategy Pattern](#strategy-pattern)
+			- [Applicability](#applicability)
+			- [Structure](#structure)
+			- [Consequences](#consequences)
+			- [Implementation](#implementation)
+		- [Template Method Pattern](#template-method-pattern)
+			- [Applicability](#applicability)
+			- [Structure](#structure)
+			- [Consequences](#consequences)
+			- [Implementation](#implementation)
+		- [Visitor Pattern](#visitor-pattern)
+			- [Applicability](#applicability)
+			- [Structure](#structure)
+			- [Consequences](#consequences)
+			- [Implementation](#implementation)
 
 <!-- /TOC -->
 
@@ -491,3 +521,150 @@ Provide a way to access the elements of an aggregate object sequentially without
 2. Who defines the traversal algorithm? The iterator is not the only place where the traversal algorithm can be defined. The aggregate might define the traversal algorithm and use the iterator to store just the state of the iteration. We call this kind of iterator a cursor, since it merely points to the current position in the aggregate. A client will invoke the Next operation on the aggregate with the cursor as an argument, and the Next operation will change the state of the cursor.
 3. How robust is the iterator? It can be dangerous to modify an aggregate while you're traversing it. If elements are added or deleted from the aggregate, you might end up accessing an element twice or missing it completely. A simple solution is to copy the aggregate and traverse the copy, but that's too expensive to do in general.
 4. Additional Iterator operations. The minimal interface to Iterator consists of the operations First, Next, IsDone, and CurrentItem.4 Some additional operations might prove useful. For example, ordered aggregates can have a Previous operation that positions the iterator to the previous element. A SkipTo operation is useful for sorted or indexed collections. SkipTo positions the iterator to an object matching specific criteria.
+
+---
+### Memento Pattern
+Without violating encapsulation, capture and externalize an object's internal state so that the object can be restored to this state later.
+
+#### Applicability
+When:
++ a snapshot of (some portion of) an object's state must be saved so that it can be restored to that state later, and
++ a direct interface to obtaining the state would expose implementation details and break the object's encapsulation.
+
+#### Structure
+![Memento](img/memento.jpg)
+
+#### Consequences
+1. Preserving encapsulation boundaries. Memento avoids exposing information that only an originator should manage but that must be stored nevertheless outside the originator. The pattern shields other objects from potentially complex Originator internals, thereby preserving encapsulation boundaries.
+2. It simplifies Originator. In other encapsulation-preserving designs, Originator keeps the versions of internal state that clients have requested. That puts all the storage management burden on Originator. Having clients manage the state they ask for simplifies Originator and keeps clients from having to notify originators when they're done.
+3. Using mementos might be expensive. Mementos might incur considerable overhead if Originator must copy large amounts of information to store in the memento or if clients create and return mementos to the originator often enough. Unless encapsulating and restoring Originator state is cheap, the pattern might not be appropriate. See the discussion of incrementally in the Implementation section.
+4. Defining narrow and wide interfaces. It may be difficult in some languages to ensure that only the originator can access the memento's state.
+5. Hidden costs in caring for mementos. A caretaker is responsible for deleting the mementos it cares for. However, the caretaker has no idea how much state is in the memento. Hence an otherwise lightweight caretaker might incur large storage costs when it stores mementos.
+
+#### Implementation
+1. Language support. Mementos have two interfaces: a wide one for originators and a narrow one for other objects. Ideally the implementation language will support two levels of static protection.
+
+---
+### Observer Pattern
+Define a one-to-many dependency between objects so that when one object changes state, all its dependents are notified and updated automatically.
+
+#### Applicability
++ When an abstraction has two aspects, one dependent on the other. Encapsulating these aspects in separate objects lets you vary and reuse them independently.
++ When a change to one object requires changing others, and you don't know how many objects need to be changed.
++ When an object should be able to notify other objects without making assumptions about who these objects are. In other words, you don't want these objects tightly coupled.
+
+#### Structure
+![Observer](img/observer.jpg)
+
+#### Consequences
+1. Abstract coupling between Subject and Observer. All a subject knows is that it has a list of observers, each conforming to the simple interface of the abstract Observer class. The subject doesn't know the concrete class of any observer. Thus the coupling between subjects and observers is abstract and minimal.
+2. Support for broadcast communication. Unlike an ordinary request, the notification that a subject sends needn't specify its receiver. The notification is broadcast automatically to all interested objects that subscribed to it. The subject doesn't care how many interested objects exist; its only responsibility is to notify its observers. This gives you the freedom to add and remove observers at any time. It's up to the observer to handle or ignore a notification.
+3. Unexpected updates. Because observers have no knowledge of each other's presence, they can be blind to the ultimate cost of changing the subject. A seemingly innocuous operation on the subject may cause a cascade of updates to observers and their dependent objects. Moreover, dependency criteria that aren't well-defined or maintained usually lead to spurious updates, which can be hard to track down.
+
+#### Implementation
+1. Mapping subjects to their observers. The simplest way for a subject to keep track of the observers it should notify is to store references to them explicitly in the subject. However, such storage may be too expensive when there are many subjects and few observers. One solution is to trade space for time by using an associative look-up (e.g., a hash table) to maintain the subject-to-observer mapping. Thus a subject with no observers does not incur storage overhead. On the other hand, this approach increases the cost of accessing the observers.
+2. Observing more than one subject. It might make sense in some situations for an observer to depend on more than one subject. For example, a spreadsheet may depend on more than one data source. It's necessary to extend the Update interface in such cases to let the observer know which subject is sending the notification. The subject can simply pass itself as a parameter in the Update operation, thereby letting the observer know which subject to examine.
+3. Who triggers the update? The subject and its observers rely on the notification mechanism to stay consistent. But what object actually calls Notify to trigger the update? Here are two options:
+  1. Have state-setting operations on Subject call Notify after they change the subject's state. The advantage of this approach is that clients don't have to remember to call Notify on the subject. The disadvantage is that several consecutive operations will cause several consecutive updates, which may be inefficient.
+  2. Make clients responsible for calling Notify at the right time. The advantage here is that the client can wait to trigger the update until after a series of state changes has been made, thereby avoiding needless intermediate updates. The disadvantage is that clients have an added responsibility to trigger the update. That makes errors more likely, since clients might forget to call Notify.
+4. Dangling references to deleted subjects. Deleting a subject should not produce dangling references in its observers. One way to avoid dangling references is to make the subject notify its observers as it is deleted so that they can reset their reference to it. In general, simply deleting the observers is not an option, because other objects may reference them, or they may be observing other subjects as well.
+5. Making sure Subject state is self-consistent before notification. It's important to make sure Subject state is self-consistent before calling Notify, because observers query the subject for its current state in the course of updating their own state.
+
+---
+### State Pattern
+Allow an object to alter its behaviour when its internal state changes. The object will appear to change its class.
+
+#### Applicability
+When:
++ An object's behaviour depends on its state, and it must change its behaviour at run-time depending on that state.
++ Operations have large, multipart conditional statements that depend on the object's state. This state is usually represented by one or more enumerated constants. Often, several operations will contain this same conditional structure. The State pattern puts each branch of the conditional in a separate class. This lets you treat the object's state as an object in its own right that can vary independently from other objects.
+
+#### Structure
+![State](img/state.jpg)
+
+#### Consequences
+1. It localises state-specific behaviour and partitions behaviour for different states. The State pattern puts all behaviour associated with a particular state into one object. Because all state-specific code lives in a State subclass, new states and transitions can be added easily by defining new subclasses.
+2. It makes state transitions explicit. When an object defines its current state solely in terms of internal data values, its state transitions have no explicit representation; they only show up as assignments to some variables. Introducing separate objects for different states makes the transitions more explicit. Also, State objects can protect the Context from inconsistent internal states, because state transitions are atomic from the Context's perspective—they happen by rebinding one variable (the Context's State object variable), not several
+3. State objects can be shared. If State objects have no instance variables—that is, the state they represent is encoded entirely in their type—then contexts can share a State object. When states are shared in this way, they are essentially flyweights (see Flyweight) with no intrinsic state, only behaviour.
+
+#### Implementation
+1. Who defines the state transitions? The State pattern does not specify which participant defines the criteria for state transitions. If the criteria are fixed, then they can be implemented entirely in the Context. It is generally more flexible and appropriate, however, to let the State subclasses themselves specify their successor state and when to make the transition. This requires adding an interface to the Context that lets State objects set the Context's current state explicitly.
+2. Creating and destroying State objects. A common implementation trade-off worth considering is whether (1) to create State objects only when they are needed and destroy them thereafter versus (2) creating them ahead of time and never destroying them.
+3. Using dynamic inheritance. Changing the behaviour for a particular request could be accomplished by changing the object's class at run-time, but this is not possible in most object-oriented programming languages.
+
+---
+### Strategy Pattern
+Define a family of algorithms, encapsulate each one, and make them interchangeable. Strategy lets the algorithm vary independently from clients that use it.
+
+#### Applicability
+When:
++ Many related classes differ only in their behaviour. Strategies provide a way to configure a class with one of many behaviours.
++ You need different variants of an algorithm. For example, you might define algorithms reflecting different space/time trade-offs. Strategies can be used when these variants are implemented as a class hierarchy of algorithms [HO87].
++ An algorithm uses data that clients shouldn't know about. Use the Strategy pattern to avoid exposing complex, algorithm-specific data structures.
++ A class defines many behaviours, and these appear as multiple conditional statements in its operations. Instead of many conditionals, move related conditional branches into their own Strategy class.
+
+#### Structure
+![Strategy](img/strategy.jpg)
+
+#### Consequences
+1. Families of related algorithms. Hierarchies of Strategy classes define a family of algorithms or behaviours for contexts to reuse. Inheritance can help factor out common functionality of the algorithms.
+2. An alternative to subclassing. Inheritance offers another way to support a variety of algorithms or behaviours. You can subclass a Context class directly to give it different behaviours. But this hard-wires the behaviour into Context. It mixes the algorithm implementation with Context's, making Context harder to understand, maintain, and extend. And you can't vary the algorithm dynamically. You wind up with many related classes whose only difference is the algorithm or behaviour they employ. Encapsulating the algorithm in separate Strategy classes lets you vary the algorithm independently of its context, making it easier to switch, understand, and extend.
+3. Strategies eliminate conditional statements. The Strategy pattern offers an alternative to conditional statements for selecting desired behaviour. When different behaviours are lumped into one class, it's hard to avoid using conditional statements to select the right behaviour. Encapsulating the behaviour in separate Strategy classes eliminates these conditional statements.
+4. A choice of implementations. Strategies can provide different implementations of the same behaviour. The client can choose among strategies with different time and space trade-offs.
+5. Clients must be aware of different Strategies. The pattern has a potential drawback in that a client must understand how Strategies differ before it can select the appropriate one. Clients might be exposed to implementation issues. Therefore you should use the Strategy pattern only when the variation in behaviour is relevant to clients.
+Communication overhead between Strategy and Context. The Strategy interface is shared by all ConcreteStrategy classes whether the algorithms they implement are trivial or complex. Hence it's likely that some ConcreteStrategies won't use all the information passed to them through this interface; simple ConcreteStrategies may use none of it! That means there will be times when the context creates and initialises parameters that never get used. If this is an issue, then you'll need tighter coupling between Strategy and Context.
+7. Increased number of objects. Strategies increase the number of objects in an application. Sometimes you can reduce this overhead by implementing strategies as stateless objects that contexts can share. Any residual state is maintained by the context, which passes it in each request to the Strategy object. Shared strategies should not maintain state across invocations. The Flyweight (195) pattern describes this approach in more detail.
+
+#### Implementation
+1. Defining the Strategy and Context interfaces. The Strategy and Context interfaces must give a ConcreteStrategy efficient access to any data it needs from a context, and vice versa.
+2. Strategies as template parameters. In C++ templates can be used to configure a class with a strategy. This technique is only applicable if (1) the Strategy can be selected at compile-time, and (2) it does not have to be changed at run-time.
+
+---
+### Template Method Pattern
+Define the skeleton of an algorithm in an operation, deferring some steps to subclasses. Template Method lets subclasses redefine certain steps of an algorithm without changing the algorithm's structure.
+
+#### Applicability
+Should be used:
++ To implement the invariant parts of an algorithm once and leave it up to subclasses to implement the behaviour that can vary.
++ when common behaviour among subclasses should be factored and localised in a common class to avoid code duplication. This is a good example of "refactoring to generalise" as described by Opdyke and Johnson [OJ93]. You first identify the differences in the existing code and then separate the differences into new operations. Finally, you replace the differing code with a template method that calls one of these new operations.
++ to control subclasses extensions. You can define a template method that calls "hook" operations (see Consequences) at specific points, thereby permitting extensions only at those points.
+
+#### Structure
+![Template Method](img/template_method.jpg)
+
+#### Consequences
+1. Inversion of control
+2. Template Methods call the following kinds of operations:
+  - concrete operations (either on the ConcreteClass or on client classes);
+  - concrete AbstractClass operations (i.e., operations that are generally useful to subclasses);
+primitive operations (i.e., abstract operations);
+  - factory methods (see Factory Method (107)); and
+  - hook operations, which provide default behaviour that subclasses can extend if necessary. A hook operation often does nothing by default.
+
+#### Implementation
+1. Using C++ access control. In C++, the primitive operations that a template method calls can be declared protected members. This ensures that they are only called by the template method. Primitive operations that must be overridden are declared pure virtual. The template method itself should not be overridden; therefore you can make the template method a nonvirtual member function.
+2. Minimizing primitive operations. An important goal in designing template methods is to minimize the number of primitive operations that a subclass must override to flesh out the algorithm. The more operations that need overriding, the more tedious things get for clients.
+3. Naming conventions. You can identify the operations that should be overridden by adding a prefix to their names. For example, the MacApp framework for Macintosh applications [App89] prefixes template method names with "Do-": "DoCreateDocument", "DoRead", and so forth.
+
+
+---
+### Visitor Pattern
+Represent an operation to be performed on the elements of an object structure. Visitor lets you define a new operation without changing the classes of the elements on which it operates.
+
+#### Applicability
+When:
++ An object structure contains many classes of objects with differing interfaces, and you want to perform operations on these objects that depend on their concrete classes.
++ Many distinct and unrelated operations need to be performed on objects in an object structure, and you want to avoid "polluting" their classes with these operations. Visitor lets you keep related operations together by defining them in one class. When the object structure is shared by many applications, use Visitor to put operations in just those applications that need them.
++ The classes defining the object structure rarely change, but you often want to define new operations over the structure. Changing the object structure classes requires redefining the interface to all visitors, which is potentially costly. If the object structure classes change often, then it's probably better to define the operations in those classes.
+
+#### Structure
+![Visitor](img/visitor.jpg)
+
+#### Consequences
+1. Visitor makes adding new operations easy. Visitors make it easy to add operations that depend on the components of complex objects. You can define a new operation over an object structure simply by adding a new visitor. In contrast, if you spread functionality over many classes, then you must change each class to define a new operation.
+2. A visitor gathers related operations and separates unrelated ones. Related behaviour isn't spread over the classes defining the object structure; it's localised in a visitor. Unrelated sets of behaviour are partitioned in their own visitor subclasses. That simplifies both the classes defining the elements and the algorithms defined in the visitors. Any algorithm-specific data structures can be hidden in the visitor.
+3. Adding new ConcreteElement classes is hard. The Visitor pattern makes it hard to add new subclasses of Element. Each new ConcreteElement gives rise to a new abstract operation on Visitor and a corresponding implementation in every ConcreteVisitor class. Sometimes a default implementation can be provided in Visitor that can be inherited by most of the ConcreteVisitors, but this is the exception rather than the rule.
+
+#### Implementation
+1. Double dispatch. Effectively, the Visitor pattern lets you add operations to classes without changing them. Visitor achieves this by using a technique called double-dispatch. It's a well-known technique. In fact, some programming languages support it directly (CLOS, for example). Languages like C++ and Smalltalk support single-dispatch.
+2. Who is responsible for traversing the object structure? A visitor must visit each element of the object structure. The question is, how does it get there? We can put responsibility for traversal in any of three places: in the object structure, in the visitor, or in a separate iterator object (see Iterator (257)).
