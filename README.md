@@ -253,7 +253,7 @@ When:
 ##### Adapter through inheritance
 ![Adapter through inheritance](img/adapter1.jpg)
 ##### Adapter through composition
-![Adapter through composition](img/adapter1.jpg)
+![Adapter through composition](img/adapter2.jpg)
 
 #### Consequences
 Class and object adapters have different trade-offs.
