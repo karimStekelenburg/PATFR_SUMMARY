@@ -67,7 +67,7 @@
 			- [Structure](#structure)
 			- [Consequences](#consequences)
 			- [Implementation](#implementation)
-	- [Behavioral Patterns](#behavioral-patterns)
+	- [Behavioural Patterns](#behavioural-patterns)
 		- [Chain of Responsibility](#chain-of-responsibility)
 			- [Applicability](#applicability)
 			- [Structure](#structure)
@@ -387,7 +387,7 @@ Provide a surrogate or placeholder for another object to control access to it.
 Quite complex, refer to book.
 
 ---
-## Behavioral Patterns
+## Behavioural Patterns
 
 ### Chain of Responsibility
 Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it.
