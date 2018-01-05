@@ -68,22 +68,22 @@
 			- [Consequences](#consequences)
 			- [Implementation](#implementation)
 	- [Behavioural Patterns](#behavioural-patterns)
-		- [Chain of Responsibility](#chain-of-responsibility)
+		- [Chain of Responsibility Pattern](#chain-of-responsibility-pattern)
 			- [Applicability](#applicability)
 			- [Structure](#structure)
 			- [Consequences](#consequences)
 			- [Implementation](#implementation)
-		- [Command](#command)
+		- [Command Pattern](#command-pattern)
 			- [Applicability](#applicability)
 			- [Structure](#structure)
 			- [Consequences](#consequences)
 			- [Implementation](#implementation)
-		- [Interpreter](#interpreter)
+		- [Interpreter Pattern](#interpreter-pattern)
 			- [Applicability](#applicability)
 			- [Structure](#structure)
 			- [Consequences](#consequences)
 			- [Implementation](#implementation)
-		- [Iterator](#iterator)
+		- [Iterator Pattern](#iterator-pattern)
 			- [Applicability](#applicability)
 			- [Structure](#structure)
 			- [Consequences](#consequences)
@@ -419,7 +419,7 @@ Quite complex, refer to book.
 ---
 ## Behavioural Patterns
 
-### Chain of Responsibility
+### Chain of Responsibility Pattern
 Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it.
 
 #### Applicability
@@ -447,7 +447,7 @@ A typical object structure might look like this:
 3. Representing requests. Different options are available for representing requests. In the simplest form, the request is a hard-coded operation invocation, as in the case of HandleHelp. This is convenient and safe, but you can forward only the fixed set of requests that the Handler class defines.
 
 ---
-### Command
+### Command Pattern
 Encapsulate a request as an object, thereby letting you parameterise clients with different requests, queue or log requests, and support undoable operations.
 
 #### Applicability
@@ -476,7 +476,7 @@ When you want to:
 3. Avoiding error accumulation in the undo process. Hysteresis can be a problem in ensuring a reliable, semantics-preserving undo/redo mechanism. Errors can accumulate as commands are executed, unexecuted, and reexecuted repeatedly so that an application's state eventually diverges from original values. It may be necessary therefore to store more information in the command to ensure that objects are restored to their original state. The Memento (283) pattern can be applied to give the command access to this information without exposing the internals of other objects.
 
 ---
-### Interpreter
+### Interpreter Pattern
 Given a language, define a represention for its grammar along with an interpreter that uses the representation to interpret sentences in the language.
 
 #### Applicability
@@ -500,7 +500,7 @@ expression, then consider using the Visitor (331) pattern to avoid changing the 
 3. Sharing terminal symbols with the Flyweight pattern. Grammars whose sentences contain many occurrences of a terminal symbol might benefit from sharing a single copy of that symbol. Grammars for computer programs are good examples—each program variable will appear in many places throughout the code. In the Motivation example, a sentence can have the terminal symbol dog (modelled by the LiteralExpression class) appearing many times.
 
 ---
-### Iterator
+### Iterator Pattern
 Provide a way to access the elements of an aggregate object sequentially without exposing its underlying representation.
 
 #### Applicability
