@@ -245,3 +245,28 @@ When:
 #### Implementation
 1. Reducing client-subsystem coupling. The coupling between clients and the subsystem can be reduced even further by making Facade an abstract class with concrete subclasses for different implementations of a subsystem. Then clients can communicate with the subsystem through the interface of the abstract Facade class. This abstract coupling keeps clients from knowing which implementation of a subsystem is used.
 2. Public versus private subsystem classes. A subsystem is analogous to a class in that both have interfaces, and both encapsulate something—a class encapsulates state and operations, while a subsystem encapsulates classes. And just as it's useful to think of the public and private interface of a class, we can think of the public and private interface of a subsystem.
+
+---
+### Flyweight Pattern
+Use sharing to support large numbers of fine-grained objects efficiently.
+
+#### Applicability
+**Only** apply the flyweight pattern **when all of the following conditions are true**:
++ An application uses a large number of objects.
++ Storage costs are high because of the sheer quantity of objects.
++ Most object state can be made extrinsic.
++ Many groups of objects may be replaced by relatively few shared objects once extrinsic state is removed.
++ The application doesn't depend on object identity. Since flyweight objects may be shared, identity tests will return true for conceptually distinct objects.
+
+#### Structure
+![Flyweight](img/flyweight1.jpg)
+
+The following object diagram shows how flyweights are shared:
+![How objects are shared](img/flyweight2.jpg)
+
+#### Consequences
++ Flyweights may introduce run-time costs associated with transferring, finding, and/or computing extrinsic state, especially if it was formerly stored as intrinsic state. However, such costs are offset by space savings, which increase as more flyweights are shared.
+
+#### Implementation
+1. Removing extrinsic state. The pattern's applicability is determined largely by how easy it is to identify extrinsic state and remove it from shared objects. Removing extrinsic state won't help reduce storage costs if there are as many different kinds of extrinsic state as there are objects before sharing. Ideally, extrinsic state can be computed from a separate object structure, one with far smaller storage requirements.
+2. Managing shared objects. Because objects are shared, clients shouldn't instantiate them directly. FlyweightFactory lets clients locate a particular flyweight. FlyweightFactory objects often use an associative store to let clients look up flyweights of interest. For example, the flyweight factory in the document editor example can keep a table of flyweights indexed by character codes. The manager returns the proper flyweight given its code, creating the flyweight if it does not already exist.
