@@ -270,3 +270,86 @@ The following object diagram shows how flyweights are shared:
 #### Implementation
 1. Removing extrinsic state. The pattern's applicability is determined largely by how easy it is to identify extrinsic state and remove it from shared objects. Removing extrinsic state won't help reduce storage costs if there are as many different kinds of extrinsic state as there are objects before sharing. Ideally, extrinsic state can be computed from a separate object structure, one with far smaller storage requirements.
 2. Managing shared objects. Because objects are shared, clients shouldn't instantiate them directly. FlyweightFactory lets clients locate a particular flyweight. FlyweightFactory objects often use an associative store to let clients look up flyweights of interest. For example, the flyweight factory in the document editor example can keep a table of flyweights indexed by character codes. The manager returns the proper flyweight given its code, creating the flyweight if it does not already exist.
+
+---
+### Proxy Pattern
+Provide a surrogate or placeholder for another object to control access to it.
+
+#### Applicability
+1. A remote proxy provides a local representative for an object in a different address space.
+2. A virtual proxy creates expensive objects on demand. The ImageProxy described in the Motivation is an example of such a proxy.
+3. A protection proxy controls access to the original object. Protection proxies are useful when objects should have different access rights.
+4. A smart reference is a replacement for a bare pointer that performs additional actions when an object is accessed. Typical uses include:
+  - Counting the number of references to the real object so that it can be freed automatically when there are no more references
+  - Loading a persistent object into memory when it's first referenced.
+  - Checking that the real object is locked before it's accessed to ensure that no other object can change it.
+
+#### Structure
+![Proxy](img/proxy.jpg)
+
+#### Consequences
+1. A remote proxy can hide the fact that an object resides in a different address space.
+2. A virtual proxy can perform optimizations such as creating an object on demand.
+3. Both protection proxies and smart references allow additional housekeeping tasks when an object is accessed.
+
+#### Implementation
+Quite complex, refer to book.
+
+---
+## Behavioral Patterns
+
+### Chain of Responsibility
+Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it.
+
+#### Applicability
+When:
++ more than one object may handle a request, and the handler isn't known a priori. The handler should be ascertained automatically.
++ you want to issue a request to one of several objects without specifying the receiver explicitly.
++ the set of objects that can handle a request should be specified dynamically.
+
+#### Structure
+![Flyweight](img/chainOfResponsibilityClass.jpg)
+
+A typical object structure might look like this:
+![How objects are shared](img/chainOfResponsibilityObject.jpg)
+
+#### Consequences
+1. Reduced coupling. The pattern frees an object from knowing which other object handles a request. An object only has to know that a request will be handled "appropriately." Both the receiver and the sender have no explicit knowledge of each other, and an object in the chain doesn't have to know about the chain's structure.
+2. Added flexibility in assigning responsibilities to objects. Chain of Responsibility gives you added flexibility in distributing responsibilities among objects. You can add or change responsibilities for handling a request by adding to or otherwise changing the chain at run-time. You can combine this with subclassing to specialise handlers statically.
+3. Receipt isn't guaranteed. Since a request has no explicit receiver, there's no guarantee it'll be handled—the request can fall off the end of the chain without ever being handled. A request can also go unhandled when the chain is not configured properly.
+
+#### Implementation
+1. Implementing the successor chain. There are two possible ways to implement the successor chain:
+  1. Define new links (usually in the Handler, but ConcreteHandlers could define them instead).
+  2. Use existing links.
+2. Connecting successors. If there are no preexisting references for defining a chain, then you'll have to introduce them yourself.
+3. Representing requests. Different options are available for representing requests. In the simplest form, the request is a hard-coded operation invocation, as in the case of HandleHelp. This is convenient and safe, but you can forward only the fixed set of requests that the Handler class defines.
+
+---
+### Command
+Encapsulate a request as an object, thereby letting you parameterise clients with different requests, queue or log requests, and support undoable operations.
+
+#### Applicability
+When you want to:
++ Parameterise objects by an action to perform, as MenuItem objects did above. You can express such parameterisation in a procedural language with a callback function, that is, a function that's registered somewhere to be called at a later point. Commands are an object-oriented replacement for callbacks.
++ specify, queue, and execute requests at different times. A Command object can have a lifetime independent of the original request. If the receiver of a request can be represented in an address space-independent way, then you can transfer a command object for the request to a different process and fulfil the request there.
++ support undo. The Command's Execute operation can store state for reversing its effects in the command itself. The Command interface must have an added Unexecute operation that reverses the effects of a previous call to Execute. Executed commands are stored in a history list. Unlimited-level undo and redo is achieved by traversing this list backwards and forwards calling Unexecute and Execute, respectively.
++ support logging changes so that they can be reapplied in case of a system crash. By augmenting the Command interface with load and store operations, you can keep a persistent log of changes. Recovering from a crash involves reloading logged commands from disk and reexecuting them with the Execute operation.
++ structure a system around high-level operations built on primitives operations. Such a structure is common in information systems that support transactions.
+
+#### Structure
+![Command](img/command.jpg)
+
+#### Consequences
+1. Command decouples the object that invokes the operation from the one that knows how to perform it.
+2. Commands are first-class objects. They can be manipulated and extended like any other object.
+3. You can assemble commands into a composite command. An example is the MacroCommand class described earlier. In general, composite commands are an instance of the Composite (163) pattern.
+4. It's easy to add new Commands, because you don't have to change existing classes.
+
+#### Implementation
+1. How intelligent should a command be? A command can have a wide range of abilities. At one extreme it merely defines a binding between a receiver and the actions that carry out the request. At the other extreme it implements everything itself without delegating to a receiver at all. The latter extreme is useful when you want to define commands that are independent of existing classes, when no suitable receiver exists, or when a command knows its receiver implicitly.
+2. Supporting undo and redo. Commands can support undo and redo capabilities if they provide a way to reverse their execution (e.g., an Unexecute or Undo operation). A ConcreteCommand class might need to store additional state to do so. This state can include
+  - the Receiver object, which actually carries out operations in response to the request,
+  - the arguments to the operation performed on the receiver, and
+  - any original values in the receiver that can change as a result of handling the request. The receiver must provide operations that let the command return the receiver to its prior state.
+3. Avoiding error accumulation in the undo process. Hysteresis can be a problem in ensuring a reliable, semantics-preserving undo/redo mechanism. Errors can accumulate as commands are executed, unexecuted, and reexecuted repeatedly so that an application's state eventually diverges from original values. It may be necessary therefore to store more information in the command to ensure that objects are restored to their original state. The Memento (283) pattern can be applied to give the command access to this information without exposing the internals of other objects.
